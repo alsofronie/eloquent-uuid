@@ -83,5 +83,15 @@ called and you'll have no `id` (expected);
     
 	$this->assertTrue(strlen($returnedUser->id) < 10);
 
-    $dbuser = \App\Models\User::first();
+    $dbUser = \App\Models\User::first();
     $this->assertTrue(strlen($user->id) == 32);
+
+## WIP
+
+ - add option for Uuid version generator
+ - drop the Webpatser\Uuid\Uuid dependency
+ - make it faster
+ - add some mechanism to `Schema` to have nice `$table->uuid('id');` directly
+ - write tests :)
+
+
