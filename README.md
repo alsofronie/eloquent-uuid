@@ -10,7 +10,7 @@ key attribute. Thus, you'll need a `CHAR(32)` primary key for your model
 
 ## Installation
 
-	composer require alsofronie/eloquent-uuid
+	composer require alsofronie/eloquent-uuid:dev-master
 
 ## Use
 
