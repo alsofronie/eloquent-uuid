@@ -1,0 +1,24 @@
+{
+    "name": "alsofronie/eloquent-uuid",
+    "description": "A Laravel Eloquent Model trait for using UUID's as primary keys",
+    "require": {
+        "laravel/framework": "5.1.*",
+        "webpatser/laravel-uuid": "2.*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^5.0"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Alex Sofronie",
+            "email": "alsofronie@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-4": {
+            "Alsofronie\\Uuid": "src/"
+        }
+    }
+}
