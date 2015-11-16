@@ -12,6 +12,9 @@ trait UuidModelTrait
     }
 
     public static function boot() {
+
+    	parent::boot();
+
         static::creating(function($model) {
             $model->attributes[$model->getKeyName()] = str_replace('-','', Uuid::generate(4));
         }, 0);
