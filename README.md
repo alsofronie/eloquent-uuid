@@ -49,7 +49,7 @@ In order to use the UUID's as primary key, you must use a `CHAR(32)` type.
 	    public function up()
 	    {
 	        Schema::create('users', function (Blueprint $table) {
-	            $table->char('id',36);	// that is the primary key holding the UUID
+	            $table->char('id',32);	// that is the primary key holding the UUID
 	            $table->string('name');
 	            $table->string('email')->unique();
 	            $table->string('password', 60);
@@ -71,3 +71,17 @@ In order to use the UUID's as primary key, you must use a `CHAR(32)` type.
 	}
 	
 	?>
+
+## Warnings
+
+There seems to be an issue with the `factory` on phpunit tests: the returned
+`$user` object will have an `id` of `1` but the database is correct.
+More, if you're using  `make()` method, the `creating` event will never get
+called and you'll have no `id` (expected);
+
+	$returnedUser = factory(App\Models\User::class)->create();
+    
+	$this->assertTrue(strlen($returnedUser->id) < 10);
+
+    $dbuser = \App\Models\User::first();
+    $this->assertTrue(strlen($user->id) == 32);
