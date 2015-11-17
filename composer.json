@@ -15,6 +15,10 @@
             "email": "alsofronie@gmail.com"
         }
     ],
+    "support": {
+        "issues": "https://github.com/alsofronie/eloquent-uuid/issues",
+        "source": "https://github.com/alsofronie/eloquent-uuid"
+    },
     "minimum-stability": "stable",
     "autoload": {
         "psr-4": {
