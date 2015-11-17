@@ -1,7 +1,7 @@
 # eloquent-uuid
 An Eloquent UUID Trait to use with Laravel 5.1.
 
-[![Software License][badge-license]][license]
+[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/hyperium/hyper/master/LICENSE)
 
 It **should** work with Laravel 5.0 also, but it's untested.
 
