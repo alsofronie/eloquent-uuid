@@ -1,6 +1,8 @@
 # eloquent-uuid
 An Eloquent UUID Trait to use with Laravel 5.1.
 
+[![Software License][badge-license]][license]
+
 It **should** work with Laravel 5.0 also, but it's untested.
 
 The trait overwrites the static `boot` method and listens to the `creating`
