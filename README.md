@@ -31,9 +31,16 @@ key attribute. Thus, you'll need a `CHAR(32)` primary key for your model
 		use UuidModelTrait;
 
 		/*
-		 * If you need binary UUID, just uncomment the $uuidBinary option
+		 * Should use the binary form to store in database ?
+		 * @default: false
 		 */
-		 // protected $uuidBinary = true;
+		 // protected $uuidBinary = false;
+
+		 /*
+		  * The UUID version to use (1 - 5)
+		  * @default: 4
+		  */
+		 // protected $uuidVersion = 4;
 
 		// ...
 	}
