@@ -3,6 +3,7 @@
 use Alsofronie\Uuid\UuidModelTrait;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Eloquent\Model as Eloquent;
+use Illuminate\Support\Facades\DB;
 
 class EloquentUuidTest extends PHPUnit_Framework_TestCase {
 
@@ -17,9 +18,10 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase {
 
 		$creation = EloquentUserModel::create([
 			'username'=>'alsofronie',
-			'password'=>'secret',
-			'email'=>'alsofronie@gmail.com'
+			'password'=>'secret'
 		]);
+
+        // TODO: explore this, identify whether is from Laravel, factory or sqlite (:memory:)
 
 		// For some reason, the $creation has id = 1
 		// But in database, everything is correct.
@@ -34,6 +36,29 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase {
 		// EloquentuserModel::guard();
 
 	}
+
+    public function testBinaryCreation() {
+
+        $creation = EloquentBinUserModel::create([
+            'username'=>'alsofronie-binary',
+            'password'=>'secret'
+        ]);
+
+        $model = EloquentBinUserModel::first();
+
+        $binUuid = $model->id;
+
+        // We should be good with strlen because
+        // in PHP the strings are not delimited by \0 like in C
+        // but they are storing the length, also
+        $this->assertEquals(16, strlen($binUuid));
+
+        $hexUuid = bin2hex($binUuid);
+        // This is to be expected, but just to show...
+        $this->assertEquals(32, strlen($hexUuid));
+    }
+
+
 
 	/**
      * Bootstrap Eloquent.
@@ -72,11 +97,24 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase {
         $this->schema()->create('users', function ($table) {
             $table->char('id',32);
             $table->string('username');
-            $table->string('email')->unique();
             $table->string('password');
             $table->timestamps();
             $table->unique('id');
         });
+
+        $this->schema()->create('binusers', function($table) {
+            $table->string('username');
+            $table->string('password');
+            $table->timestamps();
+        });
+
+        // unfortunately, we need to do this:
+        // DB::statement (...)
+
+        // This is not a mistake, We are testing if the binary we're save it's actually 16 bytes and
+        // not being cut by DBS
+
+        $this->connection()->statement('ALTER TABLE binusers ADD COLUMN id BINARY(18)');
 
     }
 
@@ -88,6 +126,7 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase {
     public function tearDown()
     {
         $this->schema()->drop('users');
+        $this->schema()->drop('binusers');
     }
 
 	/**
@@ -124,6 +163,13 @@ class EloquentUserModel extends Eloquent {
 
 	protected $guarded = [];
 
+}
+
+class EloquentBinUserModel extends Eloquent {
+    use UuidModelTrait;
+    protected $table = 'binusers';
+    protected $guarded = [];
+    protected $uuidBinary = true;
 }
 
 class DatabaseIntegrationTestConnectionResolver implements Illuminate\Database\ConnectionResolverInterface

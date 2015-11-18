@@ -29,7 +29,13 @@ trait UuidModelTrait
     	parent::boot();
 
         static::creating(function($model) {
-            $model->attributes[$model->getKeyName()] = str_replace('-','', Uuid::generate(4));
+            $uuid = Uuid::generate(4);
+            if(!empty($model->uuidBinary)) {
+                $uuid = $uuid->bytes;
+            } else {
+                $uuid = str_replace('-','',$uuid);
+            }
+            $model->attributes[$model->getKeyName()] = $uuid;
         }, 0);
     }
 
