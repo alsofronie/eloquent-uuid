@@ -29,7 +29,8 @@ trait UuidModelTrait
     	parent::boot();
 
         static::creating(function($model) {
-            $uuid = Uuid::generate(4);
+            $uuidVersion = (!empty($model->uuidVersion) ? min(max($model->uuidVersion,5),1) : 4);   // defaults to 4
+            $uuid = Uuid::generate($uuidVersion);
             if(!empty($model->uuidBinary)) {
                 $uuid = $uuid->bytes;
             } else {
