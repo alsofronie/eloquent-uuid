@@ -156,7 +156,6 @@ called and you'll have no `id` (expected);
 
 ## WIP
 
- - add option for Uuid version generator
  - drop the Webpatser\Uuid\Uuid dependency
  - make it faster
  - add some mechanism to `Schema` to have nice `$table->uuid('id');` directly
