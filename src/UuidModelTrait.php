@@ -36,6 +36,9 @@ trait UuidModelTrait
             } else {
                 $uuid = str_replace('-','',$uuid);
             }
+            // This is necessary because on \Illuminate\Database\Eloquent\Model::performInsert
+            // will not check for $this->getIncrementing() but directly for $this->incrementing
+            $model->incrementing = false;
             $model->attributes[$model->getKeyName()] = $uuid;
         }, 0);
     }

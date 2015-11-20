@@ -21,17 +21,14 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase {
 			'password'=>'secret'
 		]);
 
-        // TODO: explore this, identify whether is from Laravel, factory or sqlite (:memory:)
-
-		// For some reason, the $creation has id = 1
-		// But in database, everything is correct.
-		// More, in a real world application, the id is correctly set upon creation
+        $this->assertEquals(32, strlen($creation->id));
 
 		$model = EloquentUserModel::first();
 
 		$this->assertEquals(32, strlen($model->id));
 		$this->assertRegExp('/^[0-9a-f]{32}$/',$model->id);
-		
+
+        $this->assertEquals($creation->id, $model->id);
 
 		// EloquentuserModel::guard();
 
@@ -52,6 +49,8 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase {
         // in PHP the strings are not delimited by \0 like in C
         // but they are storing the length, also
         $this->assertEquals(16, strlen($binUuid));
+
+        $this->assertEquals($creation->id, $model->id);
 
         $hexUuid = bin2hex($binUuid);
         // This is to be expected, but just to show...
