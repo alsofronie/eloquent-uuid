@@ -36,7 +36,7 @@ trait UuidModelTrait
             $model->incrementing = false;
             $uuidVersion = (!empty($model->uuidVersion) ? $model->uuidVersion : 4);   // defaults to 4
             $uuid = Uuid::generate($uuidVersion);
-            $model->attributes[$model->getKeyName()] = $uuid;
+            $model->attributes[$model->getKeyName()] = $uuid->string;
         }, 0);
     }
 
