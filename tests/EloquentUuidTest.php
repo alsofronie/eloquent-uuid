@@ -1,6 +1,8 @@
 <?php
 
 use Alsofronie\Uuid\UuidModelTrait;
+use Alsofronie\Uuid\Uuid32ModelTrait;
+use Alsofronie\Uuid\UuidBinaryModelTrait;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Eloquent\Model as Eloquent;
 use Illuminate\Support\Facades\DB;
@@ -21,18 +23,36 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase {
 			'password'=>'secret'
 		]);
 
-        $this->assertEquals(32, strlen($creation->id));
+        $this->assertEquals(36, strlen($creation->id));
 
 		$model = EloquentUserModel::first();
 
-		$this->assertEquals(32, strlen($model->id));
-		$this->assertRegExp('/^[0-9a-f]{32}$/',$model->id);
+		$this->assertEquals(36, strlen($model->id));
+		$this->assertRegExp('/^[0-9a-f-]{36}$/',$model->id);
+        $this->assertRegExp('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $model->id);
 
         $this->assertEquals($creation->id, $model->id);
 
 		// EloquentuserModel::guard();
 
 	}
+
+    public function test32Creation() {
+        $creation = Eloquent32UserModel::create([
+            'username'=>'alsofronie',
+            'password'=>'secret'
+        ]);
+
+        $this->assertEquals(32, strlen($creation->id));
+
+        $model = Eloquent32UserModel::first();
+
+        $this->assertEquals(32, strlen($model->id));
+        $this->assertRegExp('/^[0-9a-f]{32}$/',$model->id);
+        $this->assertRegExp('/^[0-9a-f]{32}$/', $model->id);
+
+        $this->assertEquals($creation->id, $model->id);        
+    }
 
     public function testBinaryCreation() {
 
@@ -94,14 +114,22 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase {
     public function setUp()
     {
         $this->schema()->create('users', function ($table) {
-            $table->char('id',32);
+            $table->char('id',36);
             $table->string('username');
             $table->string('password');
             $table->timestamps();
-            $table->unique('id');
+            $table->primary('id');
         });
 
-        $this->schema()->create('binusers', function($table) {
+        $this->schema()->create('users32', function($table) {
+            $table->char('id',36);
+            $table->string('username');
+            $table->string('password');
+            $table->timestamps();
+            $table->primary('id'); 
+        });
+
+        $this->schema()->create('usersb', function($table) {
             $table->string('username');
             $table->string('password');
             $table->timestamps();
@@ -113,7 +141,7 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase {
         // This is not a mistake, We are testing if the binary we're save it's actually 16 bytes and
         // not being cut by DBS
 
-        $this->connection()->statement('ALTER TABLE binusers ADD COLUMN id BINARY(18)');
+        $this->connection()->statement('ALTER TABLE usersb ADD COLUMN id BINARY(18)');
 
     }
 
@@ -125,7 +153,8 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase {
     public function tearDown()
     {
         $this->schema()->drop('users');
-        $this->schema()->drop('binusers');
+        $this->schema()->drop('users32');
+        $this->schema()->drop('usersb');
     }
 
 	/**
@@ -164,11 +193,18 @@ class EloquentUserModel extends Eloquent {
 
 }
 
-class EloquentBinUserModel extends Eloquent {
-    use UuidModelTrait;
-    protected $table = 'binusers';
+class Eloquent32UserModel extends Eloquent {
+    use Uuid32ModelTrait;
+    protected $table = 'users32';
+
     protected $guarded = [];
-    protected $uuidBinary = true;
+}
+
+class EloquentBinUserModel extends Eloquent {
+    use UuidBinaryModelTrait;
+    protected $table = 'usersb';
+    
+    protected $guarded = [];
 }
 
 class DatabaseIntegrationTestConnectionResolver implements Illuminate\Database\ConnectionResolverInterface

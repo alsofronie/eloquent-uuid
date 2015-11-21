@@ -13,6 +13,7 @@
         stopOnSkipped="false"
         syntaxCheck="false"
         verbose="true"
+        colors="true"
         >
     <filter>
         <whitelist>

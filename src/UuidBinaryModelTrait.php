@@ -5,12 +5,12 @@ namespace Alsofronie\Uuid;
 use Webpatser\Uuid\Uuid;
 
 /*
- * This trait is to be used with the default $table->uuid('id') schema definition
+ * This trait is to be used with the DB::statement('ALTER TABLE table_name ADD COLUMN id BINARY(16) PRIMARY KEY')
  * @package Alsofronie\Uuid
  * @author Alex Sofronie <alsofronie@gmail.com>
  * @license MIT
  */
-trait UuidModelTrait
+trait UuidBinaryModelTrait
 {
 	/*
 	 * This function is used internally by Eloquent models to test if the model has auto increment value
@@ -36,7 +36,7 @@ trait UuidModelTrait
             $model->incrementing = false;
             $uuidVersion = (!empty($model->uuidVersion) ? $model->uuidVersion : 4);   // defaults to 4
             $uuid = Uuid::generate($uuidVersion);
-            $model->attributes[$model->getKeyName()] = $uuid;
+            $model->attributes[$model->getKeyName()] = $uuid->bytes;
         }, 0);
     }
 

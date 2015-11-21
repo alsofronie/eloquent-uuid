@@ -5,12 +5,13 @@ namespace Alsofronie\Uuid;
 use Webpatser\Uuid\Uuid;
 
 /*
- * This trait is to be used with the default $table->uuid('id') schema definition
+ * This trait is to be used with $table->char('id',32) schema definition
+ * It will simply strip the '-' from the uuid
  * @package Alsofronie\Uuid
  * @author Alex Sofronie <alsofronie@gmail.com>
  * @license MIT
  */
-trait UuidModelTrait
+trait Uuid32ModelTrait
 {
 	/*
 	 * This function is used internally by Eloquent models to test if the model has auto increment value
@@ -36,7 +37,7 @@ trait UuidModelTrait
             $model->incrementing = false;
             $uuidVersion = (!empty($model->uuidVersion) ? $model->uuidVersion : 4);   // defaults to 4
             $uuid = Uuid::generate($uuidVersion);
-            $model->attributes[$model->getKeyName()] = $uuid;
+            $model->attributes[$model->getKeyName()] = str_replace('-', '', $uuid);
         }, 0);
     }
 
