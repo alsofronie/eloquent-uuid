@@ -16,148 +16,81 @@ key attribute. Thus, you'll need a `CHAR(32)` primary key for your model
 
 ## Use
 
-	<?php
+In order to make it faster, you have the option to use one of three traits:
 
-	namespace App;
+ - `UuidModelTrait` - the key must be `CHAR(36)` and contains the dashes
+ - `Uuid32ModelTrait` - the key must be `CHAR(32)`, the dashes are striped
+ - `UuidBinaryModelTrait` - the key is `BINARY(16)`.
 
-	use Alsofronie\Uuid\UuidModelTrait;
-	use Illuminate\Database\Eloquent\Model;
+#### Using `UuidModelTrait`
 
-	class User extends Model {
+In order to use this trait, your **schema** must be something like:
 
-		/*
-		 * Just use the trait and the magic happens :)
-		 */
-		use UuidModelTrait;
-
-		/*
-		 * Should use the binary form to store in database ?
-		 * @default: false
-		 */
-		 // protected $uuidBinary = false;
-
-		 /*
-		  * The UUID version to use (1 - 5)
-		  * @default: 4
-		  */
-		 // protected $uuidVersion = 4;
-
+```
+<?php
+	// ...
+	Schema::create('users', function (Blueprint $table) {
+		$table->uuid('id');	// this will create a CHAR(36) field
+		// or
+		// $table->char('id', 36);
+		$table->string('username', 32);
+		$table->string('password', 50);
 		// ...
-	}
-	
-	?>
+		$table->primary('id');
+	});
+```
 
-## Migration - CHAR version
+#### Using `Uuid32ModelTrait`
 
-In order to use the UUID as primary key, you must use a `CHAR(32)` type.
+For this type, just use `CHAR(32)` in your schema (this is identical to the first one, but with stripped dashes).
 
-	<?php
+```
+<?php
+	// ...
+	Schema::create('users', function (Blueprint $table) {
+		$table->char('id', 32);
+		// ...
+		$table->string('username', 32);
+		$table->string('password', 50);
 
-	use Illuminate\Database\Schema\Blueprint;
-	use Illuminate\Database\Migrations\Migration;
+		$table->primary('id');
+	});
+```
 
-	class CreateUsersTable extends Migration
-	{
-	    /**
-	     * Run the migrations.
-	     *
-	     * @return void
-	     */
-	    public function up()
-	    {
-	        Schema::create('users', function (Blueprint $table) {
-	            $table->char('id',32);	// that is the primary key holding the UUID
-	            $table->string('name');
-	            $table->string('email')->unique();
-	            $table->string('password', 60);
-	            $table->rememberToken();
-	            $table->timestamps();
-	            $table->primary('id');	// we declare it as primary here
-	        });
-	    }
+#### Using `UuidBinaryModelTrait`
 
-	    /**
-	     * Reverse the migrations.
-	     *
-	     * @return void
-	     */
-	    public function down()
-	    {
-	        Schema::drop('users');
-	    }
-	}
-	
-	?>
+This stores the key as binary. The default Laravel `Blueprint` curretly 
+[does not currently support binary fields with specified length](https://github.com/laravel/framework/issues/1606),
+and (at least in MySQL) you cannot create an index (including primary key) on a `BINARY` field without length.
 
-## Migration -- BINARY version
+So, the schema definition should be something like this (please double check if you're not using MySQL):
 
-In order to use the UUID as primary binary key, you must use a `BINARY(16)` type.
-Although the PDO enabled DBS have the option of specifying the length of a binary
-field, the `Blueprint` object does not have a `binary($name, $length)` option (the
-length portion is not there). So the schema build is becoming a little messy:
+```
+<?php
 
-	<?php
+	// ...
+	Schema::create('users', function (Blueprint $table) {
+		$table->string('username', 32);
+		$table->string('password', 50);
+	});
 
-	use Illuminate\Database\Schema\Blueprint;
-	use Illuminate\Database\Migrations\Migration;
-	use Illuminate\Support\Factory\DB;
+	DB::statement('ALTER TABLE `usersb` ADD `id` BINARY(16); ALTER TABLE `usersb` ADD PRIMARY KEY (`id`);')
+?>
+```
 
-	class CreateUsersTable extends Migration
-	{
-	    /**
-	     * Run the migrations.
-	     *
-	     * @return void
-	     */
-	    public function up()
-	    {
-	        Schema::create('users', function (Blueprint $table) {
-	            $table->string('name');
-	            $table->string('email')->unique();
-	            $table->string('password', 60);
-	            $table->rememberToken();
-	            $table->timestamps();
-	        });
+#### In your models
 
-			// Note: check your database manual for the specifics on
-			// how to add a binary field of fixed size and
-			// to make it primary key. This example does not make the id
-			// field a primary key.
-	        DB::statement('ALTER TABLE users ADD COLUMN id BINARY(16)');
+In order to use this in your models, just put `use Uuid[32|Binary]ModelTrait;`:
 
-	    }
+```
+<?php
 
-	    /**
-	     * Reverse the migrations.
-	     *
-	     * @return void
-	     */
-	    public function down()
-	    {
-	        Schema::drop('users');
-	    }
-	}
-	
-	?>
+namespace App;
+use Alsofronie\Uuid;
 
-## Warnings
-
-There seems to be an issue with the `factory` on phpunit tests: the returned
-`$user` object will have an `id` of `1` but the database is correct.
-More, if you're using  `make()` method, the `creating` event will never get
-called and you'll have no `id` (expected);
-
-	$returnedUser = factory(App\Models\User::class)->create();
-    
-	$this->assertTrue(strlen($returnedUser->id) < 10);
-
-    $dbUser = \App\Models\User::first();
-    $this->assertTrue(strlen($user->id) == 32);
-
-## WIP
-
- - drop the Webpatser\Uuid\Uuid dependency
- - make it faster
- - add some mechanism to `Schema` to have nice `$table->uuid('id');` directly
-
+class User extends Eloquent
+{
+	use Uuid[32|Binary]ModelTrait;
+}
+```
 
