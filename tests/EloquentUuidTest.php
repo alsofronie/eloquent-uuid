@@ -7,37 +7,37 @@ use Illuminate\Database\Connection;
 use Illuminate\Database\Eloquent\Model as Eloquent;
 use Illuminate\Support\Facades\DB;
 
-class EloquentUuidTest extends PHPUnit_Framework_TestCase {
-
-	/**
-	 * Tests the creation of model with uuid as primary key
-	 *
-	 * @return void
-	 */
-	public function testCreation() {
-
-		// EloquentUserModel::unguard();
-
-		$creation = EloquentUserModel::create([
-			'username'=>'alsofronie',
-			'password'=>'secret'
-		]);
+class EloquentUuidTest extends PHPUnit_Framework_TestCase
+{
+    /**
+     * Tests the creation of model with uuid as primary key
+     *
+     * @return void
+     */
+    public function testCreation()
+    {
+        // EloquentUserModel::unguard();
+        $creation = EloquentUserModel::create([
+            'username'=>'alsofronie',
+            'password'=>'secret'
+        ]);
 
         $this->assertEquals(36, strlen($creation->id));
 
-		$model = EloquentUserModel::first();
+        $model = EloquentUserModel::first();
 
-		$this->assertEquals(36, strlen($model->id));
-		$this->assertRegExp('/^[0-9a-f-]{36}$/',$model->id);
+        $this->assertEquals(36, strlen($model->id));
+        $this->assertRegExp('/^[0-9a-f-]{36}$/', $model->id);
         $this->assertRegExp('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $model->id);
 
         $this->assertEquals($creation->id, $model->id);
 
-		// EloquentuserModel::guard();
+        // EloquentuserModel::guard();
 
-	}
+    }
 
-    public function test32Creation() {
+    public function test32Creation()
+    {
         $creation = Eloquent32UserModel::create([
             'username'=>'alsofronie',
             'password'=>'secret'
@@ -48,14 +48,14 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase {
         $model = Eloquent32UserModel::first();
 
         $this->assertEquals(32, strlen($model->id));
-        $this->assertRegExp('/^[0-9a-f]{32}$/',$model->id);
+        $this->assertRegExp('/^[0-9a-f]{32}$/', $model->id);
         $this->assertRegExp('/^[0-9a-f]{32}$/', $model->id);
 
-        $this->assertEquals($creation->id, $model->id);        
+        $this->assertEquals($creation->id, $model->id);
     }
 
-    public function testBinaryCreation() {
-
+    public function testBinaryCreation()
+    {
         $creation = EloquentBinUserModel::create([
             'username'=>'alsofronie-binary',
             'password'=>'secret'
@@ -79,7 +79,7 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase {
 
 
 
-	/**
+    /**
      * Bootstrap Eloquent.
      *
      * @return void
@@ -114,22 +114,22 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase {
     public function setUp()
     {
         $this->schema()->create('users', function ($table) {
-            $table->char('id',36);
+            $table->char('id', 36);
             $table->string('username');
             $table->string('password');
             $table->timestamps();
             $table->primary('id');
         });
 
-        $this->schema()->create('users32', function($table) {
-            $table->char('id',36);
+        $this->schema()->create('users32', function ($table) {
+            $table->char('id', 36); // this is not a mistake, we need to be sure the field is not stripped down by the DB
             $table->string('username');
             $table->string('password');
             $table->timestamps();
-            $table->primary('id'); 
+            $table->primary('id');
         });
 
-        $this->schema()->create('usersb', function($table) {
+        $this->schema()->create('usersb', function ($table) {
             $table->string('username');
             $table->string('password');
             $table->timestamps();
@@ -137,11 +137,7 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase {
 
         // unfortunately, we need to do this:
         // DB::statement (...)
-
-        // This is not a mistake, We are testing if the binary we're save it's actually 16 bytes and
-        // not being cut by DBS
-
-        $this->connection()->statement('ALTER TABLE usersb ADD COLUMN id BINARY(18)');
+        $this->connection()->statement('ALTER TABLE `usersb` ADD `id` BINARY(16); ALTER TABLE `usersb` ADD PRIMARY KEY (`id`);');
 
     }
 
@@ -157,7 +153,7 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase {
         $this->schema()->drop('usersb');
     }
 
-	/**
+    /**
      * Helpers...
      */
 
@@ -184,23 +180,24 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase {
 
 
 
-class EloquentUserModel extends Eloquent {
+class EloquentUserModel extends Eloquent
+{
+    use UuidModelTrait;
+    protected $table = 'users';
 
-	use UuidModelTrait;
-	protected $table = 'users';
-
-	protected $guarded = [];
-
+    protected $guarded = [];
 }
 
-class Eloquent32UserModel extends Eloquent {
+class Eloquent32UserModel extends Eloquent
+{
     use Uuid32ModelTrait;
     protected $table = 'users32';
 
     protected $guarded = [];
 }
 
-class EloquentBinUserModel extends Eloquent {
+class EloquentBinUserModel extends Eloquent
+{
     use UuidBinaryModelTrait;
     protected $table = 'usersb';
     
@@ -230,4 +227,3 @@ class DatabaseIntegrationTestConnectionResolver implements Illuminate\Database\C
         //
     }
 }
-
