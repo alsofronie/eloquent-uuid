@@ -12,7 +12,7 @@ use Webpatser\Uuid\Uuid;
  */
 trait UuidModelTrait
 {
-	/*
+    /*
 	 * This function is used internally by Eloquent models to test if the model has auto increment value
 	 * @returns bool Always false
 	 */
@@ -25,11 +25,10 @@ trait UuidModelTrait
      * This function overwrites the default boot static method of Eloquent models. It will hook
      * the creation event with a simple closure to insert the UUID
      */
-    public static function boot() {
-
-    	parent::boot();
-
-        static::creating(function($model) {
+    public static function boot()
+    {
+        parent::boot();
+        static::creating(function ($model) {
 
             // This is necessary because on \Illuminate\Database\Eloquent\Model::performInsert
             // will not check for $this->getIncrementing() but directly for $this->incrementing
@@ -39,5 +38,4 @@ trait UuidModelTrait
             $model->attributes[$model->getKeyName()] = $uuid->string;
         }, 0);
     }
-
 }
