@@ -75,6 +75,47 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase
         $hexUuid = bin2hex($binUuid);
         // This is to be expected, but just to show...
         $this->assertEquals(32, strlen($hexUuid));
+
+        $this->assertEquals($hexUuid, $model->id_string);
+
+    }
+
+    public function testBinaryFind()
+    {
+
+        $creation = EloquentBinUserModel::create([
+            'username'=>'alsofronie-binary',
+            'password'=>'secret'
+        ]);
+
+        $model = EloquentBinUserModel::first();
+
+        $binUuid = $model->id;
+        $hexUuid = bin2hex($binUuid);
+
+        $this->assertEquals($hexUuid, $model->id_string);
+
+        $found = EloquentBinUserModel::find($binUuid);
+        $this->assertEquals($found, $model);
+
+    }
+
+    public function testBinaryFindFromStringUuid()
+    {
+        $creation = EloquentBinUserModel::create([
+            'username'=>'alsofronie-binary',
+            'password'=>'secret'
+        ]);
+
+        $model = EloquentBinUserModel::first();
+
+        $binUuid = $model->id;
+        $hexUuid = bin2hex($binUuid);
+
+        $this->assertEquals($hexUuid, $model->id_string);
+
+        $found = EloquentBinUserModel::find($hexUuid);
+        $this->assertEquals($found, $model);
     }
 
 

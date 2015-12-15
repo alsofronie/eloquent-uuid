@@ -27,7 +27,7 @@ trait UuidBinaryModelTrait
      */
     public static function boot()
     {
-    	parent::boot();
+        parent::boot();
         static::creating(function ($model) {
 
             // This is necessary because on \Illuminate\Database\Eloquent\Model::performInsert
@@ -38,4 +38,29 @@ trait UuidBinaryModelTrait
             $model->attributes[$model->getKeyName()] = $uuid->bytes;
         }, 0);
     }
+
+    /**
+     * Gets the binary field as hex string ($model->id_string)
+     * @return string The string representation of the binary field.
+     */
+    public function getIdStringAttribute()
+    {
+        return bin2hex($this->attributes['id']);
+    }
+
+    /**
+     * Modified find static function to accept both string and binary versions of uuid
+     * @param  mixed $id       The id (binary or hex string)
+     * @param  array $columns  The columns to be returned (defaults to *)
+     * @return mixed           The model or null
+     */
+    public static function find($id, $columns = array('*'))
+    {
+        if (ctype_print($id)) {
+            return static::where('id', '=', hex2bin($id))->first($columns);
+        } else {
+            return parent::where('id', '=', $id)->first($columns);
+        }
+    }
 }
+
