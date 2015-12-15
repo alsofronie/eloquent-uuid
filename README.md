@@ -78,6 +78,12 @@ So, the schema definition should be something like this (please double check if 
 ?>
 ```
 
+There are two additional notes for this particular trait.
+
+> Note 1. In order to get a string representation of your uuid, simple call `$model->id_string` and you'll get it.
+
+> Note 2. You can use `User::find($uuid)` with both the binary version or the string (bin2hex) version.
+
 #### In your models
 
 In order to use this in your models, just put `use Uuid[32|Binary]ModelTrait;`:
@@ -93,4 +99,8 @@ class User extends Eloquent
 	use Uuid[32|Binary]ModelTrait;
 }
 ```
+
+## Running tests
+
+To run the tests, just run `composer install` and `./vendor/bin/phpunit`.
 
