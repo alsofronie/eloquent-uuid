@@ -118,7 +118,107 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($found, $model);
     }
 
+    public function testRelationshipWithStringUuid()
+    {
+        $firstUser = EloquentUserModel::create([
+            'username'=>'first-user',
+            'password'=>'secret'
+        ]);
 
+        $secondUser = EloquentUserModel::create([
+            'username'=>'second-user',
+            'password'=>'secret'
+        ]);
+
+        $postsForFirstUser = [];
+        $postsForSecondUser = [];
+
+        for ($i=0; $i < 10; $i++) {
+            $postsForFirstUser[] = new EloquentPostModel([
+                'name'=>'First user - post ' . $i,
+            ]);
+
+            $postsForSecondUser[] = EloquentPostModel::create([
+                'name'=>'Second user - post ' . $i,
+                'user_id'=>$secondUser->id,
+            ]);
+        }
+
+        $firstUser->posts()->saveMany($postsForFirstUser);
+        
+        $this->assertEquals(10, $firstUser->posts()->count());
+        $this->assertEquals(10, $secondUser->posts()->count());
+    }
+
+    public function testRelationshipWith32Uuid()
+    {
+        $firstUser = Eloquent32UserModel::create([
+            'username'=>'first-user',
+            'password'=>'secret'
+        ]);
+
+        $secondUser = Eloquent32UserModel::create([
+            'username'=>'second-user',
+            'password'=>'secret'
+        ]);
+
+        $postsForFirstUser = [];
+        $postsForSecondUser = [];
+
+        for ($i=0; $i < 10; $i++) {
+            $postsForFirstUser[] = new Eloquent32PostModel([
+                'name'=>'First user - post ' . $i,
+            ]);
+
+            $postsForSecondUser[] = Eloquent32PostModel::create([
+                'name'=>'Second user - post ' . $i,
+                'user_id'=>$secondUser->id,
+            ]);
+        }
+
+        $firstUser->posts()->saveMany($postsForFirstUser);
+        
+        $this->assertEquals(10, $firstUser->posts()->count());
+        $this->assertEquals(10, $secondUser->posts()->count());
+    }
+
+    public function testRelationshipWithBinUuid()
+    {
+        $firstUser = EloquentBinUserModel::create([
+            'username'=>'first-user',
+            'password'=>'secret'
+        ]);
+
+        $secondUser = EloquentBinUserModel::create([
+            'username'=>'second-user',
+            'password'=>'secret'
+        ]);
+
+        $postsForFirstUser = [];
+        $postsForSecondUser = [];
+
+        for ($i=0; $i < 10; $i++) {
+            $postsForFirstUser[] = new EloquentBinPostModel([
+                'name'=>'First user - post ' . $i,
+            ]);
+
+            $postsForSecondUser[] = EloquentBinPostModel::create([
+                'name'=>'Second user - post ' . $i,
+                'user_id'=>$secondUser->id,
+            ]);
+        }
+
+        $firstUser->posts()->saveMany($postsForFirstUser);
+        
+        $this->assertEquals(10, $firstUser->posts()->count());
+        $this->assertEquals(10, $secondUser->posts()->count());
+
+
+        $foundUser = EloquentBinUserModel::with('posts')->find($firstUser->id);
+        $this->assertNotNull($foundUser);
+
+        $this->assertEquals(10, count($foundUser->posts));
+    }
 
     /**
      * Bootstrap Eloquent.
@@ -162,10 +262,29 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase
             $table->primary('id');
         });
 
+        $this->schema()->create('posts', function ($table) {
+            // Can be in Laravel 5.2
+            // $this->uuid('id');
+            $table->char('id', 36);
+            $table->string('name');
+            $table->char('user_id', 36);
+            $table->timestamps();
+            $table->primary('id');
+
+        });
+
         $this->schema()->create('users32', function ($table) {
             $table->char('id', 36); // this is not a mistake, we need to be sure the field is not stripped down by the DB
             $table->string('username');
             $table->string('password');
+            $table->timestamps();
+            $table->primary('id');
+        });
+
+        $this->schema()->create('posts32', function ($table) {
+            $table->char('id', 36);
+            $table->string('name');
+            $table->char('user_id', 36);
             $table->timestamps();
             $table->primary('id');
         });
@@ -176,10 +295,16 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase
             $table->timestamps();
         });
 
+        $this->schema()->create('postsb', function ($table) {
+            $table->string('name');
+            $table->timestamps();
+        });
+
         // unfortunately, we need to do this:
         // DB::statement (...)
         $this->connection()->statement('ALTER TABLE `usersb` ADD `id` BINARY(16); ALTER TABLE `usersb` ADD PRIMARY KEY (`id`);');
-
+        $this->connection()->statement('ALTER TABLE `postsb` ADD COLUMN `id` BINARY(16); ALTER TABLE `postsb` ADD PRIMARY KEY (`id`);');
+        $this->connection()->statement('ALTER TABLE `postsb` ADD COLUMN `user_id` BINARY(16);');
     }
 
     /**
@@ -192,6 +317,9 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase
         $this->schema()->drop('users');
         $this->schema()->drop('users32');
         $this->schema()->drop('usersb');
+        $this->schema()->drop('posts');
+        $this->schema()->drop('posts32');
+        $this->schema()->drop('postsb');
     }
 
     /**
@@ -227,6 +355,11 @@ class EloquentUserModel extends Eloquent
     protected $table = 'users';
 
     protected $guarded = [];
+
+    public function posts()
+    {
+        return $this->hasMany('EloquentPostModel', 'user_id');
+    }
 }
 
 class Eloquent32UserModel extends Eloquent
@@ -235,6 +368,11 @@ class Eloquent32UserModel extends Eloquent
     protected $table = 'users32';
 
     protected $guarded = [];
+
+    public function posts()
+    {
+        return $this->hasMany('Eloquent32PostModel', 'user_id');
+    }
 }
 
 class EloquentBinUserModel extends Eloquent
@@ -243,6 +381,50 @@ class EloquentBinUserModel extends Eloquent
     protected $table = 'usersb';
     
     protected $guarded = [];
+
+    public function posts()
+    {
+        return $this->hasMany('EloquentBinPostModel', 'user_id');
+    }
+}
+
+class EloquentPostModel extends Eloquent
+{
+    use UuidModelTrait;
+    protected $table = 'posts';
+
+    protected $guarded = [];
+
+    public function user()
+    {
+        return $this->belongsTo('EloquentUserModel,', 'user_id');
+    }
+}
+
+class Eloquent32PostModel extends Eloquent
+{
+    use Uuid32ModelTrait;
+    protected $table = 'posts32';
+
+    protected $guarded = [];
+
+    public function user()
+    {
+        return $this->belongsTo('Eloquent32UserModel,', 'user_id');
+    }
+}
+
+class EloquentBinPostModel extends Eloquent
+{
+    use UuidBinaryModelTrait;
+    protected $table = 'postsb';
+    
+    protected $guarded = [];
+
+    public function user()
+    {
+        return $this->belongsTo('EloquentBinUserModel,', 'user_id');
+    }
 }
 
 class DatabaseIntegrationTestConnectionResolver implements Illuminate\Database\ConnectionResolverInterface
