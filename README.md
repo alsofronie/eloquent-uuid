@@ -59,7 +59,7 @@ For this type, just use `CHAR(32)` in your schema (this is identical to the firs
 
 #### Using `UuidBinaryModelTrait`
 
-This stores the key as binary. The default Laravel `Blueprint` curretly 
+This stores the key as binary. The default Laravel `Blueprint` curretly
 [does not currently support binary fields with specified length](https://github.com/laravel/framework/issues/1606),
 and (at least in MySQL) you cannot create an index (including primary key) on a `BINARY` field without length.
 
@@ -92,7 +92,7 @@ In order to use this in your models, just put `use Uuid[32|Binary]ModelTrait;`:
 <?php
 
 namespace App;
-use Alsofronie\Uuid;
+use Alsofronie\Uuid\Uuid[32|Binary]ModelTrait;
 
 class User extends Eloquent
 {
@@ -103,4 +103,3 @@ class User extends Eloquent
 ## Running tests
 
 To run the tests, just run `composer install` and `./vendor/bin/phpunit`.
-
