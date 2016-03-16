@@ -218,6 +218,10 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase
         $this->assertNotNull($foundUser);
 
         $this->assertEquals(10, count($foundUser->posts));
+
+        $foundUser = EloquentBinUserModel::with('posts')->find($secondUser->id);
+        $this->assertNotNull($foundUser);
+        $this->assertEquals(10, count($foundUser->posts));
     }
 
     /**
