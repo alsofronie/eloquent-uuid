@@ -26,9 +26,8 @@ trait Uuid32ModelTrait
      * This function overwrites the default boot static method of Eloquent models. It will hook
      * the creation event with a simple closure to insert the UUID
      */
-    public static function boot()
+    public static function bootUuid32ModelTrait()
     {
-        parent::boot();
         static::creating(function ($model) {
 
             // This is necessary because on \Illuminate\Database\Eloquent\Model::performInsert
