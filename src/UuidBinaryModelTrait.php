@@ -28,13 +28,13 @@ trait UuidBinaryModelTrait
     public static function bootUuidBinaryModelTrait()
     {
         static::creating(function ($model) {
-
             // This is necessary because on \Illuminate\Database\Eloquent\Model::performInsert
             // will not check for $this->getIncrementing() but directly for $this->incrementing
             $model->incrementing = false;
             $uuidVersion = (!empty($model->uuidVersion) ? $model->uuidVersion : 4);   // defaults to 4
             $uuid = Uuid::generate($uuidVersion);
-            $model->attributes[$model->getKeyName()] = $uuid->bytes;
+            $model->attributes[$model->getKeyName()] = (isset($model->optimized) && $model->optimized
+                ? hex2bin($this->toOptimized($uuid->string)) : $uuid->bytes);
         }, 0);
     }
 
@@ -44,7 +44,8 @@ trait UuidBinaryModelTrait
      */
     public function getIdStringAttribute()
     {
-        return bin2hex($this->attributes['id']);
+        return (isset($model->optimized) && $model->optimized)
+            ? $this->toNormal(bin2hex($this->attributes['id'])) : bin2hex($this->attributes['id']);
     }
 
     /**
@@ -56,10 +57,30 @@ trait UuidBinaryModelTrait
     public static function find($id, $columns = array('*'))
     {
         if (ctype_print($id)) {
-            return static::where('id', '=', hex2bin($id))->first($columns);
+            $idFinal = (isset($model->optimized) && $model->optimized)
+            ? $this->toOptimized($id) : $id;
+            return static::where('id', '=', hex2bin($idFinal)->first($columns);
         } else {
             return parent::where('id', '=', $id)->first($columns);
         }
+    }
+
+    public static function toOptimized($uuid)
+    {
+        return substr($uuid, 15, 4)
+            . substr($uuid, 10, 4)
+            . substr($uuid, 1, 8)
+            . substr($uuid, 20, 4)
+            . substr($uuid, 25);
+    }
+
+    public static function toNormal($uuid)
+    {
+        return substr($uuid, 9, 8) . '-'
+            . substr($uuid, 5, 4) . '-'
+            . substr($uuid, 1, 4) . '-'
+            . substr($uuid, 17, 4) . '-'
+            . substr($uuid, 21);
     }
 }
 
