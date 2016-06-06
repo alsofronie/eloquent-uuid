@@ -73,16 +73,39 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($creation->id, $model->id);
 
         $hexUuid = bin2hex($binUuid);
+
         // This is to be expected, but just to show...
         $this->assertEquals(32, strlen($hexUuid));
-
         $this->assertEquals($hexUuid, $model->id_string);
+    }
 
+    public function testBinaryOptimizedCreation()
+    {
+        $creation = EloquentBinOptimizedUserModel::create([
+            'username'=>'alsofronie-binary',
+            'password'=>'secret'
+        ]);
+
+        $model = EloquentBinOptimizedUserModel::first();
+
+        $binUuid = $model->id;
+
+        // We should be good with strlen because
+        // in PHP the strings are not delimited by \0 like in C
+        // but they are storing the length, also
+        $this->assertEquals(16, strlen($binUuid));
+
+        $this->assertEquals($creation->id, $model->id);
+
+        $hexUuid = EloquentBinOptimizedUserModel::toNormal($binUuid);
+
+        // This is to be expected, but just to show...
+        $this->assertEquals(32, strlen($hexUuid));
+        $this->assertEquals($hexUuid, $model->id_string);
     }
 
     public function testBinaryFind()
     {
-
         $creation = EloquentBinUserModel::create([
             'username'=>'alsofronie-binary',
             'password'=>'secret'
@@ -97,7 +120,24 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase
 
         $found = EloquentBinUserModel::find($binUuid);
         $this->assertEquals($found, $model);
+    }
 
+    public function testBinaryOptimizedFind()
+    {
+        $creation = EloquentBinOptimizedUserModel::create([
+            'username'=>'alsofronie-binary',
+            'password'=>'secret'
+        ]);
+
+        $model = EloquentBinOptimizedUserModel::first();
+
+        $binUuid = $model->id;
+        $hexUuid = EloquentBinOptimizedUserModel::toNormal($binUuid);
+
+        $this->assertEquals($hexUuid, $model->id_string);
+
+        $found = EloquentBinOptimizedUserModel::find($binUuid);
+        $this->assertEquals($found, $model);
     }
 
     public function testBinaryFindFromStringUuid()
@@ -115,6 +155,24 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($hexUuid, $model->id_string);
 
         $found = EloquentBinUserModel::find($hexUuid);
+        $this->assertEquals($found, $model);
+    }
+
+    public function testBinaryOptimizedFindFromStringUuid()
+    {
+        $creation = EloquentBinOptimizedUserModel::create([
+            'username'=>'alsofronie-binary',
+            'password'=>'secret'
+        ]);
+
+        $model = EloquentBinOptimizedUserModel::first();
+
+        $binUuid = $model->id;
+        $hexUuid = EloquentBinOptimizedUserModel::toNormal($binUuid);
+
+        $this->assertEquals($hexUuid, $model->id_string);
+
+        $found = EloquentBinOptimizedUserModel::find($hexUuid);
         $this->assertEquals($found, $model);
     }
 
@@ -145,7 +203,7 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase
         }
 
         $firstUser->posts()->saveMany($postsForFirstUser);
-        
+
         $this->assertEquals(10, $firstUser->posts()->count());
         $this->assertEquals(10, $secondUser->posts()->count());
     }
@@ -177,7 +235,7 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase
         }
 
         $firstUser->posts()->saveMany($postsForFirstUser);
-        
+
         $this->assertEquals(10, $firstUser->posts()->count());
         $this->assertEquals(10, $secondUser->posts()->count());
     }
@@ -209,7 +267,7 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase
         }
 
         $firstUser->posts()->saveMany($postsForFirstUser);
-        
+
         $this->assertEquals(10, $firstUser->posts()->count());
         $this->assertEquals(10, $secondUser->posts()->count());
 
@@ -220,6 +278,48 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(10, count($foundUser->posts));
 
         $foundUser = EloquentBinUserModel::with('posts')->find($secondUser->id);
+        $this->assertNotNull($foundUser);
+        $this->assertEquals(10, count($foundUser->posts));
+    }
+
+    public function testRelationshipWithBinUuidOptimized()
+    {
+        $firstUser = EloquentBinOptimizedUserModel::create([
+            'username'=>'first-user',
+            'password'=>'secret'
+        ]);
+
+        $secondUser = EloquentBinOptimizedUserModel::create([
+            'username'=>'second-user',
+            'password'=>'secret'
+        ]);
+
+        $postsForFirstUser = [];
+        $postsForSecondUser = [];
+
+        for ($i=0; $i < 10; $i++) {
+            $postsForFirstUser[] = new EloquentBinOptimizedPostModel([
+                'name'=>'First user - post ' . $i,
+            ]);
+
+            $postsForSecondUser[] = EloquentBinOptimizedPostModel::create([
+                'name'=>'Second user - post ' . $i,
+                'user_id'=>$secondUser->id,
+            ]);
+        }
+
+        $firstUser->posts()->saveMany($postsForFirstUser);
+
+        $this->assertEquals(10, $firstUser->posts()->count());
+        $this->assertEquals(10, $secondUser->posts()->count());
+
+
+        $foundUser = EloquentBinOptimizedUserModel::with('posts')->find($firstUser->id);
+        $this->assertNotNull($foundUser);
+
+        $this->assertEquals(10, count($foundUser->posts));
+
+        $foundUser = EloquentBinOptimizedUserModel::with('posts')->find($secondUser->id);
         $this->assertNotNull($foundUser);
         $this->assertEquals(10, count($foundUser->posts));
     }
@@ -235,11 +335,11 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase
         Eloquent::setConnectionResolver(
             new DatabaseIntegrationTestConnectionResolver
         );
-        
+
         Eloquent::setEventDispatcher(
             new Illuminate\Events\Dispatcher
         );
-        
+
     }
 
     /**
@@ -383,12 +483,26 @@ class EloquentBinUserModel extends Eloquent
 {
     use UuidBinaryModelTrait;
     protected $table = 'usersb';
-    
+
     protected $guarded = [];
 
     public function posts()
     {
         return $this->hasMany('EloquentBinPostModel', 'user_id');
+    }
+}
+
+class EloquentBinOptimizedUserModel extends Eloquent
+{
+    use UuidBinaryModelTrait;
+    protected $table = 'usersb';
+
+    protected $guarded = [];
+    protected static $uuidOptimization = true;
+
+    public function posts()
+    {
+        return $this->hasMany('EloquentBinOptimizedPostModel', 'user_id');
     }
 }
 
@@ -422,12 +536,26 @@ class EloquentBinPostModel extends Eloquent
 {
     use UuidBinaryModelTrait;
     protected $table = 'postsb';
-    
+
     protected $guarded = [];
 
     public function user()
     {
         return $this->belongsTo('EloquentBinUserModel,', 'user_id');
+    }
+}
+
+class EloquentBinOptimizedPostModel extends Eloquent
+{
+    use UuidBinaryModelTrait;
+    protected $table = 'postsb';
+
+    protected $guarded = [];
+    protected static $uuidOptimization = true;
+
+    public function user()
+    {
+        return $this->belongsTo('EloquentBinOptimizedUserModel,', 'user_id');
     }
 }
 

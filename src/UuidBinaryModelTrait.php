@@ -33,8 +33,7 @@ trait UuidBinaryModelTrait
             $model->incrementing = false;
             $uuidVersion = (!empty($model->uuidVersion) ? $model->uuidVersion : 4);   // defaults to 4
             $uuid = Uuid::generate($uuidVersion);
-            $model->attributes[$model->getKeyName()] = (isset($model->optimized) && $model->optimized
-                ? hex2bin($this->toOptimized($uuid->string)) : $uuid->bytes);
+            $model->attributes[$model->getKeyName()] = (property_exists($model, 'uuidOptimization') && $model::$uuidOptimization ? $model::toOptimized($uuid->string) : $uuid->bytes);
         }, 0);
     }
 
@@ -44,8 +43,8 @@ trait UuidBinaryModelTrait
      */
     public function getIdStringAttribute()
     {
-        return (isset($model->optimized) && $model->optimized)
-            ? $this->toNormal(bin2hex($this->attributes['id'])) : bin2hex($this->attributes['id']);
+        return (property_exists($this, 'uuidOptimization') && $this::$uuidOptimization)
+            ? self::toNormal($this->attributes['id']) : bin2hex($this->attributes['id']);
     }
 
     /**
@@ -57,30 +56,42 @@ trait UuidBinaryModelTrait
     public static function find($id, $columns = array('*'))
     {
         if (ctype_print($id)) {
-            $idFinal = (isset($model->optimized) && $model->optimized)
-            ? $this->toOptimized($id) : $id;
-            return static::where('id', '=', hex2bin($idFinal)->first($columns);
+            $idFinal = (property_exists(static::class, 'uuidOptimization') && static::$uuidOptimization)
+            ? self::toOptimized($id) : hex2bin($id);
+
+            return static::where('id', '=', $idFinal)->first($columns);
         } else {
             return parent::where('id', '=', $id)->first($columns);
         }
     }
 
+    /**
+     * Convert uuid string (with or without dashes) to binary
+     * @param  string $uuid
+     * @return binary
+     */
     public static function toOptimized($uuid)
     {
-        return substr($uuid, 15, 4)
-            . substr($uuid, 10, 4)
-            . substr($uuid, 1, 8)
-            . substr($uuid, 20, 4)
-            . substr($uuid, 25);
+        $uuid = preg_replace('/\-/', null, $uuid);
+        return hex2bin(substr($uuid, 12, 4)) .
+            hex2bin(substr($uuid, 8, 4)) .
+            hex2bin(substr($uuid, 0, 8)) .
+            hex2bin(substr($uuid, 16, 4)) .
+            hex2bin(substr($uuid, 20));
     }
 
+    /**
+     * Convert uuid binary to string (without dashes)
+     * @param  binary $uuid
+     * @return string
+     */
     public static function toNormal($uuid)
     {
-        return substr($uuid, 9, 8) . '-'
-            . substr($uuid, 5, 4) . '-'
-            . substr($uuid, 1, 4) . '-'
-            . substr($uuid, 17, 4) . '-'
-            . substr($uuid, 21);
+        return bin2hex(substr($uuid, 4, 4)) .
+            bin2hex(substr($uuid, 2, 2)) .
+            bin2hex(substr($uuid, 0, 2)) .
+            bin2hex(substr($uuid, 8, 2)) .
+            bin2hex(substr($uuid, 10));
     }
 }
 
