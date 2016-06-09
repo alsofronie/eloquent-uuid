@@ -515,7 +515,7 @@ class EloquentPostModel extends Eloquent
 
     public function user()
     {
-        return $this->belongsTo('EloquentUserModel,', 'user_id');
+        return $this->belongsTo('EloquentUserModel', 'user_id');
     }
 }
 
@@ -528,7 +528,7 @@ class Eloquent32PostModel extends Eloquent
 
     public function user()
     {
-        return $this->belongsTo('Eloquent32UserModel,', 'user_id');
+        return $this->belongsTo('Eloquent32UserModel', 'user_id');
     }
 }
 
@@ -541,7 +541,7 @@ class EloquentBinPostModel extends Eloquent
 
     public function user()
     {
-        return $this->belongsTo('EloquentBinUserModel,', 'user_id');
+        return $this->belongsTo('EloquentBinUserModel', 'user_id');
     }
 }
 
@@ -555,7 +555,7 @@ class EloquentBinOptimizedPostModel extends Eloquent
 
     public function user()
     {
-        return $this->belongsTo('EloquentBinOptimizedUserModel,', 'user_id');
+        return $this->belongsTo('EloquentBinOptimizedUserModel', 'user_id');
     }
 }
 
