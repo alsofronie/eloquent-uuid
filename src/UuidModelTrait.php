@@ -13,9 +13,9 @@ use Webpatser\Uuid\Uuid;
 trait UuidModelTrait
 {
     /*
-	 * This function is used internally by Eloquent models to test if the model has auto increment value
-	 * @returns bool Always false
-	 */
+     * This function is used internally by Eloquent models to test if the model has auto increment value
+     * @returns bool Always false
+     */
     public function getIncrementing()
     {
         return false;
