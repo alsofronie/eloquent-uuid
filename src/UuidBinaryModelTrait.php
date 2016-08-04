@@ -12,6 +12,8 @@ use Webpatser\Uuid\Uuid;
  */
 trait UuidBinaryModelTrait
 {
+    protected static $primaryColumn = 'id';
+
     /*
 	 * This function is used internally by Eloquent models to test if the model has auto increment value
 	 * @returns bool Always false
@@ -44,7 +46,7 @@ trait UuidBinaryModelTrait
     public function getIdStringAttribute()
     {
         return (property_exists($this, 'uuidOptimization') && $this::$uuidOptimization)
-            ? self::toNormal($this->attributes['id']) : bin2hex($this->attributes['id']);
+            ? self::toNormal($this->attributes[self::$primaryColumn]) : bin2hex($this->attributes[self::$primaryColumn]);
     }
 
     /**
@@ -59,9 +61,9 @@ trait UuidBinaryModelTrait
             $idFinal = (property_exists(static::class, 'uuidOptimization') && static::$uuidOptimization)
             ? self::toOptimized($id) : hex2bin($id);
 
-            return static::where('id', '=', $idFinal)->first($columns);
+            return static::where(self::$primaryColumn, '=', $idFinal)->first($columns);
         } else {
-            return parent::where('id', '=', $id)->first($columns);
+            return parent::where(self::$primaryColumn, '=', $id)->first($columns);
         }
     }
 
