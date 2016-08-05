@@ -324,6 +324,97 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(10, count($foundUser->posts));
     }
 
+    public function testManyToManyRelationshipsWithChar32()
+    {
+        $firstUser = Eloquent32UserModel::create([
+            'username'=>'first-user',
+            'password'=>'secret'
+        ]);
+
+        $secondUser = Eloquent32UserModel::create([
+            'username'=>'second-user',
+            'password'=>'secret'
+        ]);
+
+        $thirdUser = Eloquent32UserModel::create([
+            'username' => 'third-user',
+            'password' => 'secret'
+        ]);
+
+        $firstRole = Eloquent32RoleModel::create([
+            'name' => 'Sailor',
+        ]);
+        $secondRole = Eloquent32RoleModel::create([
+            'name' => 'Cook',
+        ]);
+        $thirdRole = Eloquent32RoleModel::create([
+            'name' => 'Pirate',
+        ]);
+
+        $firstUser->roles()->attach([$firstRole->id, $secondRole->id]);
+
+        $crusoe = Eloquent32UserModel::find($firstUser->id);
+        $this->assertEquals(2, $crusoe->roles()->count());
+
+        $secondUser->roles()->attach([$firstRole->id, $secondRole->id]);
+        $secondUser->roles()->sync([$secondRole->id, $thirdRole->id]);
+
+        $crusoe = Eloquent32UserModel::find($secondUser->id);
+        $found = false;
+        foreach ($crusoe->roles as $role) {
+            if ($role->id === $thirdRole->id) {
+                $found = true;
+            }
+        }
+        $this->assertTrue($found);
+    }
+
+    public function testManyToManyRelationshipsWithBin()
+    {
+        $firstUser = EloquentBinUserModel::create([
+            'username'=>'first-user',
+            'password'=>'secret'
+        ]);
+
+        $secondUser = EloquentBinUserModel::create([
+            'username'=>'second-user',
+            'password'=>'secret'
+        ]);
+
+        $thirdUser = EloquentBinUserModel::create([
+            'username' => 'third-user',
+            'password' => 'secret'
+        ]);
+
+        $firstRole = EloquentBinRoleModel::create([
+            'name' => 'Sailor',
+        ]);
+        $secondRole = EloquentBinRoleModel::create([
+            'name' => 'Cook',
+        ]);
+        $thirdRole = EloquentBinRoleModel::create([
+            'name' => 'Pirate',
+        ]);
+
+        $firstUser->roles()->attach([$firstRole->id, $secondRole->id]);
+
+        $crusoe = EloquentBinUserModel::find($firstUser->id);
+        $this->assertEquals(2, $crusoe->roles()->count());
+
+
+        $secondUser->roles()->attach([$firstRole->id, $secondRole->id]);
+        $secondUser->roles()->sync([$secondRole->id, $thirdRole->id]);
+        $crusoe = EloquentBinUserModel::find($secondUser->id);
+
+        $found = false;
+        foreach ($crusoe->roles as $role) {
+            if ($role->id === $thirdRole->id) {
+                $found = true;
+            }
+        }
+        $this->assertTrue($found);
+    }
+
     /**
      * Bootstrap Eloquent.
      *
@@ -404,11 +495,36 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase
             $table->timestamps();
         });
 
+        $this->schema()->create('roles32', function ($table) {
+            $table->char('id', 32);
+            $table->string('name');
+            $table->timestamps();
+        });
+
+        $this->schema()->create('user32_role32', function ($table) {
+            $table->char('user_id', 32);
+            $table->char('role_id', 32);
+        });
+
+        $this->schema()->create('rolesb', function ($table) {
+            $table->string('name');
+            $table->timestamps();
+        });
+
+        $this->schema()->create('userb_roleb', function ($table) {
+            $table->nullableTimestamps();
+        });
+
         // unfortunately, we need to do this:
         // DB::statement (...)
         $this->connection()->statement('ALTER TABLE `usersb` ADD `id` BINARY(16); ALTER TABLE `usersb` ADD PRIMARY KEY (`id`);');
         $this->connection()->statement('ALTER TABLE `postsb` ADD COLUMN `id` BINARY(16); ALTER TABLE `postsb` ADD PRIMARY KEY (`id`);');
         $this->connection()->statement('ALTER TABLE `postsb` ADD COLUMN `user_id` BINARY(16);');
+
+        $this->connection()->statement('ALTER TABLE `rolesb` ADD `id` BINARY(16); ALTER TABLE `rolesb` ADD PRIMARY KEY (`id`);');
+        $this->connection()->statement('ALTER TABLE `userb_roleb` ADD `user_id` BINARY(16) DEFAULT NULL;');
+        $this->connection()->statement('ALTER TABLE `userb_roleb` ADD `role_id` BINARY(16) DEFAULT NULL;');
+        // $this->connection()->statement('ALTER TABLE `userb_roleb` ADD PRIMARY KEY (user_id, role_id);');
     }
 
     /**
@@ -424,6 +540,10 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase
         $this->schema()->drop('posts');
         $this->schema()->drop('posts32');
         $this->schema()->drop('postsb');
+        $this->schema()->drop('rolesb');
+        $this->schema()->drop('roles32');
+        $this->schema()->drop('user32_role32');
+        $this->schema()->drop('userb_roleb');
     }
 
     /**
@@ -477,6 +597,11 @@ class Eloquent32UserModel extends Eloquent
     {
         return $this->hasMany('Eloquent32PostModel', 'user_id');
     }
+
+    public function roles()
+    {
+        return $this->belongsToMany('Eloquent32RoleModel', 'user32_role32', 'user_id', 'role_id');
+    }
 }
 
 class EloquentBinUserModel extends Eloquent
@@ -489,6 +614,10 @@ class EloquentBinUserModel extends Eloquent
     public function posts()
     {
         return $this->hasMany('EloquentBinPostModel', 'user_id');
+    }
+
+    public function roles() {
+        return $this->belongsToMany('EloquentBinRoleModel', 'userb_roleb', 'user_id', 'role_id');
     }
 }
 
@@ -556,6 +685,31 @@ class EloquentBinOptimizedPostModel extends Eloquent
     public function user()
     {
         return $this->belongsTo('EloquentBinOptimizedUserModel', 'user_id');
+    }
+}
+
+class Eloquent32RoleModel extends Eloquent
+{
+    use Uuid32ModelTrait;
+    protected $table = 'roles32';
+
+    protected $guarded = [];
+
+    public function users()
+    {
+        return $this->belongsToMany(Eloquent32UserModel::class, 'user32_role32', 'role_id', 'user_id');
+    }
+}
+
+class EloquentBinRoleModel extends Eloquent
+{
+    use UuidBinaryModelTrait;
+    protected $table = 'rolesb';
+
+    protected $guarded = [];
+    public function users()
+    {
+        return $this->belongsToMany(EloquentBinUserModel::class, 'userb_roleb', 'role_id', 'user_id');
     }
 }
 
