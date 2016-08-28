@@ -66,6 +66,21 @@ trait UuidBinaryModelTrait
     }
 
     /**
+    * Convert the model to an array
+    * @return array An array containing all the fields of the model
+    */
+    public function toArray()
+    {
+      $parentArray = parent::toArray();
+      foreach ($parentArray as $key => $value) {
+        if(!preg_match('//u', $parentArray[$key])){//non-valid utf-8
+          $parentArray[$key] = self::toNormal($parentArray[$key]);
+        }
+      }
+      return $parentArray;
+    }
+
+    /**
      * Convert uuid string (with or without dashes) to binary
      * @param  string $uuid
      * @return binary
@@ -94,4 +109,3 @@ trait UuidBinaryModelTrait
             bin2hex(substr($uuid, 10));
     }
 }
-
