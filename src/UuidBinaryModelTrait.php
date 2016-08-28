@@ -74,7 +74,8 @@ trait UuidBinaryModelTrait
       $parentArray = parent::toArray();
       foreach ($parentArray as $key => $value) {
         if(!preg_match('//u', $parentArray[$key])){//non-valid utf-8
-          $parentArray[$key] = self::toNormal($parentArray[$key]);
+          $parentArray[$key] = (property_exists($this, 'uuidOptimization') && $this::$uuidOptimization)
+            ? self::toNormal($parentArray[$key]) : bin2hex($parentArray[$key]);
         }
       }
       return $parentArray;
