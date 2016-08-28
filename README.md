@@ -84,6 +84,10 @@ There are two additional notes for this particular trait.
 
 > Note 2. You can use `User::find($uuid)` with both the binary version or the string (bin2hex) version.
 
+##### Using the optimized uuid
+To use the optimized uuid, put the following line in your models:
+`private static $uuidOptimization = true;`
+
 #### In your models
 
 In order to use this in your models, just put `use Uuid[32|Binary]ModelTrait;`:
