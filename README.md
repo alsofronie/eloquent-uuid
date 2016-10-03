@@ -19,7 +19,7 @@ key attribute. Thus, you'll need a `CHAR(32)` primary key for your model
 In order to make it faster, you have the option to use one of three traits:
 
  - `UuidModelTrait` - the key must be `CHAR(36)` and contains the dashes
- - `Uuid32ModelTrait` - the key must be `CHAR(32)`, the dashes are striped
+ - `Uuid32ModelTrait` - the key must be `CHAR(32)`, the dashes are stripped
  - `UuidBinaryModelTrait` - the key is `BINARY(16)`.
 
 #### Using `UuidModelTrait`
