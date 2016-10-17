@@ -2,10 +2,10 @@
     "name": "alsofronie/eloquent-uuid",
     "description": "A Laravel Eloquent Model trait for using UUID's as primary keys",
     "require": {
-        "laravel/framework": "^5.1.0",
         "webpatser/laravel-uuid": "2.*"
     },
     "require-dev": {
+        "laravel/framework": "^5.1.0",
         "phpunit/phpunit": "~4.0"
     },
     "license": "MIT",
