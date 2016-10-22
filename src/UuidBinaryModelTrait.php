@@ -66,6 +66,24 @@ trait UuidBinaryModelTrait
     }
 
     /**
+     * Modified findOrFail static function to accept both string and binary versions of uuid
+     * @param  mixed $id       The id (binary or hex string)
+     * @param  array $columns  The columns to be returned (defaults to *)
+     * @return mixed           The model or null
+     */
+    public static function findOrFail($id, $columns = array('*'))
+    {
+        if (ctype_print($id)) {
+            $idFinal = (property_exists(static::class, 'uuidOptimization') && static::$uuidOptimization)
+            ? self::toOptimized($id) : hex2bin($id);
+
+            return static::where('id', '=', $idFinal)->firstOrFail($columns);
+        } else {
+            return parent::where('id', '=', $id)->firstOrFail($columns);
+        }
+    }
+
+    /**
     * Convert the model to an array
     * @return array An array containing all the fields of the model
     */

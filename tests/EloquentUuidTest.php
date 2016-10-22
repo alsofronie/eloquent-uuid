@@ -122,6 +122,24 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($found, $model);
     }
 
+    public function testBinaryFindOrFail()
+    {
+        $creation = EloquentBinUserModel::create([
+            'username'=>'alsofronie-binary',
+            'password'=>'secret'
+        ]);
+
+        $model = EloquentBinUserModel::first();
+
+        $binUuid = $model->id;
+        $hexUuid = bin2hex($binUuid);
+
+        $this->assertEquals($hexUuid, $model->id_string);
+
+        $found = EloquentBinUserModel::findOrFail($binUuid);
+        $this->assertEquals($found, $model);
+    }
+
     public function testBinaryOptimizedFind()
     {
         $creation = EloquentBinOptimizedUserModel::create([
@@ -137,6 +155,24 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($hexUuid, $model->id_string);
 
         $found = EloquentBinOptimizedUserModel::find($binUuid);
+        $this->assertEquals($found, $model);
+    }
+
+    public function testBinaryOptimizedFindOrFail()
+    {
+        $creation = EloquentBinOptimizedUserModel::create([
+            'username'=>'alsofronie-binary',
+            'password'=>'secret'
+        ]);
+
+        $model = EloquentBinOptimizedUserModel::first();
+
+        $binUuid = $model->id;
+        $hexUuid = EloquentBinOptimizedUserModel::toNormal($binUuid);
+
+        $this->assertEquals($hexUuid, $model->id_string);
+
+        $found = EloquentBinOptimizedUserModel::findOrFail($binUuid);
         $this->assertEquals($found, $model);
     }
 
@@ -158,6 +194,24 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($found, $model);
     }
 
+    public function testBinaryFindOrFailFromStringUuid()
+    {
+        $creation = EloquentBinUserModel::create([
+            'username'=>'alsofronie-binary',
+            'password'=>'secret'
+        ]);
+
+        $model = EloquentBinUserModel::first();
+
+        $binUuid = $model->id;
+        $hexUuid = bin2hex($binUuid);
+
+        $this->assertEquals($hexUuid, $model->id_string);
+
+        $found = EloquentBinUserModel::findOrFail($hexUuid);
+        $this->assertEquals($found, $model);
+    }
+
     public function testBinaryOptimizedFindFromStringUuid()
     {
         $creation = EloquentBinOptimizedUserModel::create([
@@ -173,6 +227,24 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($hexUuid, $model->id_string);
 
         $found = EloquentBinOptimizedUserModel::find($hexUuid);
+        $this->assertEquals($found, $model);
+    }
+
+    public function testBinaryOptimizedFindOrFailFromStringUuid()
+    {
+        $creation = EloquentBinOptimizedUserModel::create([
+            'username'=>'alsofronie-binary',
+            'password'=>'secret'
+        ]);
+
+        $model = EloquentBinOptimizedUserModel::first();
+
+        $binUuid = $model->id;
+        $hexUuid = EloquentBinOptimizedUserModel::toNormal($binUuid);
+
+        $this->assertEquals($hexUuid, $model->id_string);
+
+        $found = EloquentBinOptimizedUserModel::findOrFail($hexUuid);
         $this->assertEquals($found, $model);
     }
 
