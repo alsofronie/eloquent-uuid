@@ -89,14 +89,19 @@ trait UuidBinaryModelTrait
     */
     public function toArray()
     {
-      $parentArray = parent::toArray();
-      foreach ($parentArray as $key => $value) {
-        if(!preg_match('//u', $parentArray[$key])){//non-valid utf-8
-          $parentArray[$key] = (property_exists($this, 'uuidOptimization') && $this::$uuidOptimization)
-            ? self::toNormal($parentArray[$key]) : bin2hex($parentArray[$key]);
+        $parentArray = parent::toArray();
+        foreach ($parentArray as $key => $value) {
+            $parentValue = $parentArray[$key];
+            // TODO: drop the preg_match because it's slow and
+            // what if a binary value in the uuid gets represented
+            // by valid ASCII or UTF symbols?
+            if(!is_array($parentValue) && !preg_match('//u', $parentValue)) {
+                //non-valid utf-8
+                $parentArray[$key] = (property_exists($this, 'uuidOptimization') && $this::$uuidOptimization)
+                ? self::toNormal($parentValue) : bin2hex($parentValue);
+            }
         }
-      }
-      return $parentArray;
+        return $parentArray;
     }
 
     /**
