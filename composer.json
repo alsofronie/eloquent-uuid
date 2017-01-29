@@ -1,6 +1,7 @@
 {
     "name": "alsofronie/eloquent-uuid",
     "description": "A Laravel Eloquent Model trait for using UUID's as primary keys",
+    "type": "library",
     "require": {
         "webpatser/laravel-uuid": "2.*"
     },
