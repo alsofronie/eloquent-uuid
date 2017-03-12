@@ -28,12 +28,15 @@ trait UuidBinaryModelTrait
     public static function bootUuidBinaryModelTrait()
     {
         static::creating(function ($model) {
-            // This is necessary because on \Illuminate\Database\Eloquent\Model::performInsert
-            // will not check for $this->getIncrementing() but directly for $this->incrementing
-            $model->incrementing = false;
-            $uuidVersion = (!empty($model->uuidVersion) ? $model->uuidVersion : 4);   // defaults to 4
-            $uuid = Uuid::generate($uuidVersion);
-            $model->attributes[$model->getKeyName()] = (property_exists($model, 'uuidOptimization') && $model::$uuidOptimization ? $model::toOptimized($uuid->string) : $uuid->bytes);
+            // Only generate UUID if it wasn't set by already.
+            if (!isset($model->attributes[$model->getKeyName()])) {
+                // This is necessary because on \Illuminate\Database\Eloquent\Model::performInsert
+                // will not check for $this->getIncrementing() but directly for $this->incrementing
+                $model->incrementing = false;
+                $uuidVersion = (!empty($model->uuidVersion) ? $model->uuidVersion : 4);   // defaults to 4
+                $uuid = Uuid::generate($uuidVersion);
+                $model->attributes[$model->getKeyName()] = (property_exists($model, 'uuidOptimization') && $model::$uuidOptimization ? $model::toOptimized($uuid->string) : $uuid->bytes);
+            }
         }, 0);
     }
 
