@@ -98,18 +98,12 @@ trait UuidBinaryModelTrait
 
     private function deepArray($array)
     {
+        $useOptimization = !empty($this->uuidOptimization);
         foreach ($array as $key => $value) {
-            $value = $array[$key];
-            if (is_array($value)) {
-                $array[$key] = $this->deepArray($value);
-            } elseif (!preg_match('//u', $value)) {
-                // TODO: drop the preg_match because it's slow and
-                // what if a binary value in the uuid gets represented
-                // by valid ASCII or UTF symbols?
-                $array[$key] = (property_exists($this, 'uuidOptimization') && $this::$uuidOptimization) ?
-                    self::toNormal($value) :
-                    bin2hex($value)
-                ;
+            if (!is_string($value)) {
+                $array[$key] = $this->deepArray((array)$value);
+            } elseif (!ctype_print($value)) {
+                $array[$key] = $useOptimization ? self::toNormal($value) : bin2hex($value);
             }
         }
         return $array;
@@ -142,5 +136,18 @@ trait UuidBinaryModelTrait
             bin2hex(substr($uuid, 0, 2)) .
             bin2hex(substr($uuid, 8, 2)) .
             bin2hex(substr($uuid, 10));
+    }
+
+    public function fromJson($json, $asObject = false)
+    {
+        $mixed = parent::fromJson($json, $asObject);
+        $key = $this->getKeyName();
+        if ($asObject) {
+            $mixed->{$key} = static::toOptimized($mixed->{$key});
+        } else {
+            $mixed[$key] = static::toOptimized($mixed[$key]);
+        }
+
+        return $mixed;
     }
 }
