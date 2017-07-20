@@ -515,6 +515,23 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase
         static::assertNotNull($json);
     }
 
+    public function testToArray()
+    {
+        $model = EloquentBinOptimizedUserModel::create([
+            'username' => 'Model',
+            'password' => 'secret'
+        ]);
+        $customModel = EloquentBinOptimizedPostModel::create(['name' => 'bla']);
+        $model->cust = $customModel;
+
+        $array = $model->toArray();
+        static::assertNotNull($array);
+
+        $json = json_encode($array);
+        var_dump($json);
+        static::assertNotNull($json);
+    }
+
     /**
      * Bootstrap Eloquent.
      *

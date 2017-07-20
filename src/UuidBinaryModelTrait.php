@@ -101,7 +101,11 @@ trait UuidBinaryModelTrait
         $useOptimization = !empty($this->uuidOptimization);
         foreach ($array as $key => $value) {
             if (!is_string($value)) {
-                $array[$key] = $this->deepArray((array)$value);
+                if (is_object($value) && method_exists($value, 'toArray')) {
+                    $array[$key] = $value->toArray();
+                } else {
+                    $array[$key] = $this->deepArray((array)$value);
+                }
             } elseif (!ctype_print($value)) {
                 $array[$key] = $useOptimization ? self::toNormal($value) : bin2hex($value);
             }
