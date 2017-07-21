@@ -98,15 +98,15 @@ trait UuidBinaryModelTrait
 
     private function deepArray($array)
     {
-        $useOptimization = !empty($this->uuidOptimization);
+        $useOptimization = !empty($this::$uuidOptimization);
         foreach ($array as $key => $value) {
-            if (!is_string($value)) {
-                if (is_object($value) && method_exists($value, 'toArray')) {
-                    $array[$key] = $value->toArray();
-                } else {
-                    $array[$key] = $this->deepArray((array)$value);
-                }
-            } elseif (!ctype_print($value)) {
+            if(is_array($value)){
+                $array[$key] = $this->deepArray($value);
+            }
+            elseif (is_object($value) && method_exists($value, 'toArray')) {
+                $array[$key] = $value->toArray();
+            }
+            elseif (is_string($value) && !ctype_print($value)) {
                 $array[$key] = $useOptimization ? self::toNormal($value) : bin2hex($value);
             }
         }
@@ -144,7 +144,7 @@ trait UuidBinaryModelTrait
 
     public function fromJson($json, $asObject = false)
     {
-        $mixed = parent::fromJson($json, $asObject);
+        $useOptimization = !empty($this::$uuidOptimization);
         $key = $this->getKeyName();
         if ($asObject) {
             $mixed->{$key} = static::toOptimized($mixed->{$key});
