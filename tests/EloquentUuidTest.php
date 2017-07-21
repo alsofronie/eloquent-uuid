@@ -528,7 +528,6 @@ class EloquentUuidTest extends PHPUnit_Framework_TestCase
         static::assertNotNull($array);
 
         $json = json_encode($array);
-        var_dump($json);
         static::assertNotNull($json);
     }
 
