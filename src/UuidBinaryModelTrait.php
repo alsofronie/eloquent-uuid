@@ -145,6 +145,7 @@ trait UuidBinaryModelTrait
     public function fromJson($json, $asObject = false)
     {
         $useOptimization = !empty($this::$uuidOptimization);
+	$mixed = parent::fromJson($json, $asObject);
         $key = $this->getKeyName();
         if ($asObject) {
             $mixed->{$key} = static::toOptimized($mixed->{$key});
