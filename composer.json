@@ -7,7 +7,7 @@
     },
     "require-dev": {
         "laravel/framework": "^5.1.0",
-        "phpunit/phpunit": "~4.0"
+        "phpunit/phpunit": "~5.7"
     },
     "license": "MIT",
     "authors": [
