@@ -145,11 +145,11 @@ trait UuidBinaryModelTrait
     public function fromJson($json, $asObject = false)
     {
         $useOptimization = !empty($this::$uuidOptimization);
-	$mixed = parent::fromJson($json, $asObject);
+        $mixed = parent::fromJson($json, $asObject);
         $key = $this->getKeyName();
-        if ($asObject) {
+        if ($asObject && property_exists($mixed, $key)) {
             $mixed->{$key} = static::toOptimized($mixed->{$key});
-        } else {
+        } elseif (array_key_exists($key, $mixed)) {
             $mixed[$key] = static::toOptimized($mixed[$key]);
         }
 
