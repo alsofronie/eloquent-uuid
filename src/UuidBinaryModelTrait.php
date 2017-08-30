@@ -53,6 +53,21 @@ trait UuidBinaryModelTrait
     }
 
     /**
+     * Gets the binary field as string ($model->id_dashed_string) with dashes
+     * @return string The string representation of the binary field.
+     */
+    public function getIdDashedStringAttribute()
+    {
+        $uuid = $this->getIdStringAttribute();
+
+        return substr($uuid, 0, 8) . '-' .
+            substr($uuid, 8, 4) . '-' .
+            substr($uuid, 12, 4) . '-' .
+            substr($uuid, 16, 4) . '-' .
+            substr($uuid, 20);
+    }
+
+    /**
      * Modified find static function to accept both string and binary versions of uuid
      * @param  mixed $id       The id (binary or hex string)
      * @param  array $columns  The columns to be returned (defaults to *)
