@@ -29,13 +29,14 @@ trait UuidBinaryModelTrait
     {
         static::creating(function ($model) {
             // Only generate UUID if it wasn't set by already.
-            if (!isset($model->attributes[$model->getKeyName()])) {
+            $key = $model->getKeyName();
+            if (!isset($model->attributes[$key])) {
                 // This is necessary because on \Illuminate\Database\Eloquent\Model::performInsert
                 // will not check for $this->getIncrementing() but directly for $this->incrementing
                 $model->incrementing = false;
                 $uuidVersion = (!empty($model->uuidVersion) ? $model->uuidVersion : 4);   // defaults to 4
                 $uuid = Uuid::generate($uuidVersion);
-                $model->attributes[$model->getKeyName()] = (property_exists($model, 'uuidOptimization') && $model::$uuidOptimization ? $model::toOptimized($uuid->string) : $uuid->bytes);
+                $model->attributes[$key] = (property_exists($model, 'uuidOptimization') && $model::$uuidOptimization ? $model::toOptimized($uuid->string) : $uuid->bytes);
             }
         }, 0);
     }
@@ -46,8 +47,9 @@ trait UuidBinaryModelTrait
      */
     public function getIdStringAttribute()
     {
+        $key = $this->getKeyName();
         return (property_exists($this, 'uuidOptimization') && $this::$uuidOptimization)
-            ? self::toNormal($this->attributes['id']) : bin2hex($this->attributes['id']);
+            ? self::toNormal($this->attributes[$key]) : bin2hex($this->attributes[$key]);
     }
 
     /**
@@ -58,13 +60,14 @@ trait UuidBinaryModelTrait
      */
     public static function find($id, $columns = array('*'))
     {
+        $key = (new static)->getKeyName();
         if (ctype_print($id)) {
             $idFinal = (property_exists(static::class, 'uuidOptimization') && static::$uuidOptimization)
             ? self::toOptimized($id) : hex2bin($id);
 
-            return static::where('id', '=', $idFinal)->first($columns);
+            return static::where($key, '=', $idFinal)->first($columns);
         } else {
-            return parent::where('id', '=', $id)->first($columns);
+            return parent::where($key, '=', $id)->first($columns);
         }
     }
 
@@ -76,13 +79,14 @@ trait UuidBinaryModelTrait
      */
     public static function findOrFail($id, $columns = array('*'))
     {
+        $key = (new static)->getKeyName();
         if (ctype_print($id)) {
             $idFinal = (property_exists(static::class, 'uuidOptimization') && static::$uuidOptimization)
             ? self::toOptimized($id) : hex2bin($id);
 
-            return static::where('id', '=', $idFinal)->firstOrFail($columns);
+            return static::where($key, '=', $idFinal)->firstOrFail($columns);
         } else {
-            return parent::where('id', '=', $id)->firstOrFail($columns);
+            return parent::where($key, '=', $id)->firstOrFail($columns);
         }
     }
 
