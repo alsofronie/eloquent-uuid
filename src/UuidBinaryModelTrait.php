@@ -125,7 +125,7 @@ trait UuidBinaryModelTrait
             elseif (is_object($value) && method_exists($value, 'toArray')) {
                 $array[$key] = $value->toArray();
             }
-            elseif (is_string($value) && !ctype_print($value)) {
+            elseif (is_string($value) && mb_detect_encoding($value) === false) {//mb_detect_encoding will return false if $value is a binary type
                 $array[$key] = $useOptimization ? self::toNormal($value) : bin2hex($value);
             }
         }
