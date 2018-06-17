@@ -118,14 +118,14 @@ trait UuidBinaryModelTrait
     private function deepArray($array)
     {
         $useOptimization = !empty($this::$uuidOptimization);
-        foreach ($array as $key => $value) {
+        foreach ($array as $key => $value) {            
             if(is_array($value)){
                 $array[$key] = $this->deepArray($value);
             }
             elseif (is_object($value) && method_exists($value, 'toArray')) {
                 $array[$key] = $value->toArray();
             }
-            elseif (is_string($value) && mb_detect_encoding($value) === false) {//mb_detect_encoding will return false if $value is a binary type
+            elseif (is_string($value) && !$this->_isPrintable($value)) {
                 $array[$key] = $useOptimization ? self::toNormal($value) : bin2hex($value);
             }
         }
@@ -173,5 +173,21 @@ trait UuidBinaryModelTrait
         }
 
         return $mixed;
+    }
+
+    /**
+    * Checks if the given string is printable.
+    * The default ctype_print() will return false if the $value contains special characters such as é,à,ç,$,£,...
+    * 
+    * @return bool True if printable
+    */
+    private function _isPrintable($value)
+    {
+        $printable = ctype_print($value);
+        if(!$printable){//only check if the value is not printable according to php default ctype_print function
+            $pattern = "~^[\pL\pN\s\"\~". preg_quote("!#$%&'()*+,-./:;<=>?@[\]^_`{|}´") ."]+$~u";
+            $printable = preg_match($pattern, $value) !== false;
+        }
+        return $printable;
     }
 }
