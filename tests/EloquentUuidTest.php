@@ -880,6 +880,7 @@ class DatabaseIntegrationTestConnectionResolver implements Illuminate\Database\C
     public function getDefaultConnection()
     {
         return 'default';
+        
     }
 
     public function setDefaultConnection($name)
