@@ -81,9 +81,9 @@ trait UuidBinaryModelTrait
             ? self::toOptimized($id) : hex2bin($id);
 
             return static::where($key, '=', $idFinal)->first($columns);
-        } else {
-            return parent::where($key, '=', $id)->first($columns);
         }
+
+        return parent::where($key, '=', $id)->first($columns);
     }
 
     /**
@@ -100,9 +100,9 @@ trait UuidBinaryModelTrait
             ? self::toOptimized($id) : hex2bin($id);
 
             return static::where($key, '=', $idFinal)->firstOrFail($columns);
-        } else {
-            return parent::where($key, '=', $id)->firstOrFail($columns);
         }
+
+        return parent::where($key, '=', $id)->firstOrFail($columns);
     }
 
     /**
@@ -163,7 +163,6 @@ trait UuidBinaryModelTrait
 
     public function fromJson($json, $asObject = false)
     {
-        $useOptimization = !empty($this::$uuidOptimization);
         $mixed = parent::fromJson($json, $asObject);
         $key = $this->getKeyName();
         if ($asObject && property_exists($mixed, $key)) {
