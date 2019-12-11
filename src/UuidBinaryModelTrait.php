@@ -185,11 +185,11 @@ trait UuidBinaryModelTrait
         return is_array($ids)
             ? $this->newQueryWithoutScopes()->whereIn($this->getQualifiedKeyName(), array_map(
                 function($id) {
-                    return ctype_print($id) ? $id : self::toOptimized($id);
+                    return ctype_print($id) ? self::toOptimized($id) : $id;
                 },
                 $ids
             ))
-            : $this->newQueryWithoutScopes()->whereKey(ctype_print($ids) ? $ids : self::toOptimized($ids));
+            : $this->newQueryWithoutScopes()->whereKey(ctype_print($ids) ? self::toOptimized($ids) : $ids);
     }
 
     /**
