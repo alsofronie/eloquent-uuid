@@ -174,4 +174,32 @@ trait UuidBinaryModelTrait
 
         return $mixed;
     }
+
+    /**
+     * Get a new query to restore one or more models by their queueable IDs.
+     *
+     * @param  array|int  $ids
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function newQueryForRestoration($ids)
+    {
+        return is_array($ids)
+            ? $this->newQueryWithoutScopes()->whereIn($this->getQualifiedKeyName(), array_map(
+                function($id) {
+                    return ctype_print($id) ? $id : self::toOptimized($id);
+                },
+                $ids
+            ))
+            : $this->newQueryWithoutScopes()->whereKey(ctype_print($ids) ? $ids : self::toOptimized($ids));
+    }
+
+    /**
+     * Get the queueable identity for the entity.
+     *
+     * @return mixed
+     */
+    public function getQueueableId()
+    {
+        return self::toNormal($this->getKey());
+    }
 }
