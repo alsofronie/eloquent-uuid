@@ -23,6 +23,16 @@ trait Uuid32ModelTrait
     }
 
     /**
+     * This function is used internally by Eloquent models to set the data type for the primary key.
+     * 
+     * @return string Always string
+     */
+    public function getkeyType()
+    {
+        return 'string';
+    }
+
+    /**
      * This function overwrites the default boot static method of Eloquent models. It will hook
      * the creation event with a simple closure to insert the UUID
      */
