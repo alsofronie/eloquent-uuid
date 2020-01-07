@@ -165,9 +165,9 @@ trait UuidBinaryModelTrait
     {
         $mixed = parent::fromJson($json, $asObject);
         $key = $this->getKeyName();
-        if ($asObject && property_exists($mixed, $key)) {
+        if ($asObject && is_object($mixed) && property_exists($mixed, $key)) {
             $mixed->{$key} = static::toOptimized($mixed->{$key});
-        } elseif (array_key_exists($key, $mixed)) {
+        } elseif (is_array($mixed) && array_key_exists($key, $mixed)) {
             $mixed[$key] = static::toOptimized($mixed[$key]);
         }
 
