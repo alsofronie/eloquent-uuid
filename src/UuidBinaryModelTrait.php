@@ -81,9 +81,9 @@ trait UuidBinaryModelTrait
             ? self::toOptimized($id) : hex2bin($id);
 
             return static::where($key, '=', $idFinal)->first($columns);
-        } else {
-            return parent::where($key, '=', $id)->first($columns);
         }
+
+        return parent::where($key, '=', $id)->first($columns);
     }
 
     /**
@@ -100,9 +100,9 @@ trait UuidBinaryModelTrait
             ? self::toOptimized($id) : hex2bin($id);
 
             return static::where($key, '=', $idFinal)->firstOrFail($columns);
-        } else {
-            return parent::where($key, '=', $id)->firstOrFail($columns);
         }
+
+        return parent::where($key, '=', $id)->firstOrFail($columns);
     }
 
     /**
@@ -125,7 +125,7 @@ trait UuidBinaryModelTrait
             elseif (is_object($value) && method_exists($value, 'toArray')) {
                 $array[$key] = $value->toArray();
             }
-            elseif (is_string($value) && mb_detect_encoding($value, 'ASCII', true) === false) { // mb_detect_encoding will return false if $value is a binary type
+            elseif (is_string($value) && mb_detect_encoding($value, 'ASCII,UTF-8', true) === false) { // mb_detect_encoding will return false if $value is a binary type
                 $array[$key] = $useOptimization ? self::toNormal($value) : bin2hex($value);
             }
         }
@@ -163,15 +163,42 @@ trait UuidBinaryModelTrait
 
     public function fromJson($json, $asObject = false)
     {
-        $useOptimization = !empty($this::$uuidOptimization);
         $mixed = parent::fromJson($json, $asObject);
         $key = $this->getKeyName();
-        if ($asObject && property_exists($mixed, $key)) {
+        if ($asObject && is_object($mixed) && property_exists($mixed, $key)) {
             $mixed->{$key} = static::toOptimized($mixed->{$key});
-        } elseif (array_key_exists($key, $mixed)) {
+        } elseif (is_array($mixed) && array_key_exists($key, $mixed)) {
             $mixed[$key] = static::toOptimized($mixed[$key]);
         }
 
         return $mixed;
+    }
+
+    /**
+     * Get a new query to restore one or more models by their queueable IDs.
+     *
+     * @param  array|int  $ids
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function newQueryForRestoration($ids)
+    {
+        return is_array($ids)
+            ? $this->newQueryWithoutScopes()->whereIn($this->getQualifiedKeyName(), array_map(
+                function($id) {
+                    return ctype_print($id) ? self::toOptimized($id) : $id;
+                },
+                $ids
+            ))
+            : $this->newQueryWithoutScopes()->whereKey(ctype_print($ids) ? self::toOptimized($ids) : $ids);
+    }
+
+    /**
+     * Get the queueable identity for the entity.
+     *
+     * @return mixed
+     */
+    public function getQueueableId()
+    {
+        return self::toNormal($this->getKey());
     }
 }

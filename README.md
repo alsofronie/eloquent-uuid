@@ -1,5 +1,5 @@
 # eloquent-uuid
-An Eloquent UUID Trait to use with Laravel 5.1 - 5.4
+An Eloquent UUID Trait to use with Laravel 5.1 - 6.*
 
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/hyperium/hyper/master/LICENSE)
 [![Total Downloads](https://poser.pugx.org/alsofronie/eloquent-uuid/downloads)](https://packagist.org/packages/alsofronie/eloquent-uuid)
